@@ -50,4 +50,16 @@
     <!-- Announcement made when the battery mode tile changes to quick (not shown on the screen). [CHAR LIMIT=NONE] -->
     <string name="accessibility_quick_settings_perf_profile_changed_bias_perf">Режим продуктивності змінено на швидкий.</string>
     <string name="quick_settings_performance_profile_detail_title">Режим продуктивності</string>
+
+    <!-- Live display tile -->
+    <string name="quick_settings_live_display_off">LiveDisplay вимкнено.</string>
+    <string name="quick_settings_live_display_auto">LiveDisplay: автоматичний режим.</string>
+    <string name="quick_settings_live_display_day">LiveDisplay: денний режим.</string>
+    <string name="quick_settings_live_display_night">LiveDisplay: нічний режим.</string>
+    <string name="quick_settings_live_display_outdoor">LiveDisplay: режим «На вулиці».</string>
+    <string name="quick_settings_live_display_changed_off">LiveDisplay вимкнено.</string>
+    <string name="quick_settings_live_display_changed_auto">LiveDisplay у автоматичниому режимі.</string>
+    <string name="quick_settings_live_display_changed_day">LiveDisplay у денному режимі.</string>
+    <string name="quick_settings_live_display_changed_night">LiveDisplay у нічному режимі.</string>
+    <string name="quick_settings_live_display_changed_outdoor">LiveDisplay у режимі «На вулиці».</string>
 </resources>
