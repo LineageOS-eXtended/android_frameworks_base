@@ -386,14 +386,16 @@ class ActivityStarter {
             }
         }
 
-        try {
-            if (shouldExcludeFromRecents(intent, userId)) {
-                launchFlags |= FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
-                intent.setFlags(launchFlags);
+        if (intent.getComponent() != null) {
+            try {
+                if (shouldExcludeFromRecents(intent, userId)) {
+                    launchFlags |= FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
+                    intent.setFlags(launchFlags);
+                }
+            } catch (RemoteException e) {
+                Slog.w(TAG, "Failure checking protected apps status", e);
+                err = ActivityManager.START_PROTECTED_APP;
             }
-        } catch (RemoteException e) {
-            Slog.w(TAG, "Failure checking protected apps status", e);
-            err = ActivityManager.START_PROTECTED_APP;
         }
 
         final ActivityStack resultStack = resultRecord == null ? null : resultRecord.task.stack;
@@ -826,13 +828,15 @@ class ActivityStarter {
                 e.printStackTrace();
             }
 
-            try {
-                if (shouldExcludeFromRecents(intent, userId)) {
-                    startFlags |= FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
-                    intent.setFlags(startFlags);
+            if (intent.getComponent() != null) {
+                try {
+                    if (shouldExcludeFromRecents(intent, userId)) {
+                        startFlags |= FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
+                        intent.setFlags(startFlags);
+                    }
+                } catch (RemoteException e) {
+                    Slog.w(TAG, "Failure checking protected apps status", e);
                 }
-            } catch (RemoteException e) {
-                Slog.w(TAG, "Failure checking protected apps status", e);
             }
 
             final int realCallingPid = Binder.getCallingPid();
@@ -1119,12 +1123,14 @@ class ActivityStarter {
             e.printStackTrace();
         }
 
-        try {
-            if (shouldExcludeFromRecents(r.intent, r.userId)) {
-                mLaunchFlags |= FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
+        if (r.intent.getComponent() != null) {
+            try {
+                if (shouldExcludeFromRecents(r.intent, r.userId)) {
+                    mLaunchFlags |= FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
+                }
+            } catch (RemoteException e) {
+                Slog.w(TAG, "Failure checking protected apps status", e);
             }
-        } catch (RemoteException e) {
-            Slog.w(TAG, "Failure checking protected apps status", e);
         }
 
         computeLaunchingTaskFlags();
