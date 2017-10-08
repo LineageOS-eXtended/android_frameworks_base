@@ -36,6 +36,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.ContentObserver;
+import android.media.AudioManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.BatteryManagerInternal;
 import android.os.BatteryProperties;
@@ -171,6 +175,9 @@ public final class BatteryService extends SystemService {
     private boolean mMultiColorLed;
 
     private boolean mSentLowBatteryBroadcast = false;
+
+    private boolean mPlayBatteryFullyChargedSound;
+    private boolean mIsPlayingBatteryFullyChargedSound;
 
     private final int mVbattSamplingIntervalMsec = 30000; /* sampling frequency - 30 seconds */
     private final int mWeakChgCutoffVoltageMv;
@@ -624,6 +631,10 @@ public final class BatteryService extends SystemService {
             // Update the battery LED
             mLed.updateLightsLocked();
 
+            if (shouldPlayBatteryFullyChargedSoundLocked()) {
+                playBatteryFullyChargedSoundLocked();
+            }
+
             // This needs to be done after sendIntent() so that we get the lastest battery stats.
             if (logOutlier && dischargeDuration != 0) {
                 logOutlierLocked(dischargeDuration);
@@ -932,6 +943,32 @@ public final class BatteryService extends SystemService {
         mLed.updateLightsLocked();
     }
 
+    private boolean shouldPlayBatteryFullyChargedSoundLocked() {
+        return mPlayBatteryFullyChargedSound && mPlugType != 0
+                && mBatteryProps.batteryLevel == BATTERY_SCALE
+                && !mIsPlayingBatteryFullyChargedSound;
+    }
+
+    private void playBatteryFullyChargedSoundLocked() {
+        playChargedSound();
+        mIsPlayingBatteryFullyChargedSound = true;
+    }
+
+    private void playChargedSound() {
+        final String soundPath = CMSettings.Global.getString(mContext.getContentResolver(),
+                CMSettings.Global.BATTERY_FULLY_CHARGED_RINGTONE);
+
+        if (soundPath != null && !soundPath.equals("silent")) {
+            final Ringtone powerRingtone = RingtoneManager.getRingtone(mContext, Uri.parse(soundPath));
+            if (powerRingtone != null) {
+                powerRingtone.setStreamType(AudioManager.STREAM_SYSTEM);
+                powerRingtone.play();
+            }
+        }
+
+        mIsPlayingBatteryFullyChargedSound = false;
+    }
+
     private final class Led {
         private final Light mBatteryLight;
 
@@ -1090,6 +1127,10 @@ public final class BatteryService extends SystemService {
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
 
+            // Battery fully charged sound enabled
+            resolver.registerContentObserver(Settings.Global.getUriFor(
+                    Settings.Global.BATTERY_FULLY_CHARGED_SOUND_ENABLED), false, this, UserHandle.USER_ALL);
+
             // Battery light enabled
             resolver.registerContentObserver(CMSettings.System.getUriFor(
                     CMSettings.System.BATTERY_LIGHT_ENABLED), false, this, UserHandle.USER_ALL);
@@ -1136,6 +1177,10 @@ public final class BatteryService extends SystemService {
         public void update() {
             ContentResolver resolver = mContext.getContentResolver();
             Resources res = mContext.getResources();
+
+            // Battery fully charged sound enabled
+            mPlayBatteryFullyChargedSound = Settings.Global.getInt(
+		            resolver, Settings.Global.BATTERY_FULLY_CHARGED_SOUND_ENABLED, 1) != 0;
 
             // Battery light enabled
             mLightEnabled = CMSettings.System.getInt(resolver,
